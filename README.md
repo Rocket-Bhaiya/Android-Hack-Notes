@@ -66,4 +66,50 @@ yay -S waydroid waydroid-image && sudo waydroid init && sudo systemctl enable --
 
 ---
 
-Now you have **Waydroid running on Arch Linux!** 🚀 Let me know if you need any help.
+### **🔥 Install Metasploit on Arch Linux (One Command)**
+On **Arch Linux**, you can install Metasploit easily using `yay`:  
+
+```bash
+yay -S metasploit
+```
+This will install **Metasploit Framework** and all required dependencies.
+
+---
+
+### **🚀 Start Metasploit**
+Once installed, launch Metasploit by running:
+```bash
+msfconsole
+```
+
+---
+
+### **📌 Optional: Enable PostgreSQL for Database Support**
+Metasploit uses PostgreSQL for storing exploits and session data. To enable it:  
+
+1️⃣ **Start PostgreSQL Service**  
+```bash
+sudo systemctl start postgresql
+```
+2️⃣ **Initialize the Database**  
+```bash
+sudo -u postgres initdb -D /var/lib/postgres/data
+```
+3️⃣ **Enable PostgreSQL at Boot**  
+```bash
+sudo systemctl enable postgresql
+```
+4️⃣ **Start Metasploit with DB Support**  
+```bash
+msfdb init
+msfconsole
+```
+
+---
+
+### **🎯 One-Liner for Full Setup**
+```bash
+yay -S metasploit && sudo systemctl start postgresql && sudo -u postgres initdb -D /var/lib/postgres/data && sudo systemctl enable postgresql && msfdb init && msfconsole
+```
+
+---
