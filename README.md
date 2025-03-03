@@ -313,3 +313,314 @@ Inside **Meterpreter**, you can:
 ## **🚀 Conclusion**
 This is a **basic penetration testing method** to check if your Waydroid setup is vulnerable. Always ensure you are testing in a **legal & ethical environment**.
 
+It looks like your version of **Waydroid** does not support `waydroid gapps enable`. This feature is only available in some versions.  
+
+To **manually install GApps (Google Play Services & Play Store)**, follow these steps:
+
+---
+
+## **🛠 Step 1: Download OpenGApps**  
+1. Visit **OpenGApps website** → [https://opengapps.org/](https://opengapps.org/)  
+2. Select:
+   - **Platform:** `ARM64`
+   - **Android Version:** (Check Waydroid version: `waydroid status`)
+   - **Variant:** `pico` (smallest) or `nano`
+3. Download the **.zip file**.
+
+---
+
+## **🛠 Step 2: Install GApps in Waydroid**  
+First, **enter Waydroid shell**:  
+```bash
+waydroid shell
+```
+Inside the shell, **remount the system partition as writable**:
+```bash
+mount -o rw,remount /
+```
+Now, **extract and copy GApps files**:  
+```bash
+unzip /path/to/open_gapps.zip -d /system
+```
+Example:  
+```bash
+unzip ~/Downloads/open_gapps-arm64-11.0-pico-20220215.zip -d /system
+```
+Set the correct permissions:
+```bash
+chmod -R 755 /system/priv-app /system/app /system/framework
+```
+Exit the Waydroid shell:
+```bash
+exit
+```
+
+---
+
+## **🛠 Step 3: Restart Waydroid**
+```bash
+sudo systemctl restart waydroid-container
+```
+Then launch Waydroid:
+```bash
+waydroid session start
+waydroid show-full-ui
+```
+
+---
+
+## **✅ Step 4: Sign in to Google Play Store**
+1. Open the **Google Play Store**.
+2. Sign in with your Google account.
+3. Enable **Play Protect** in settings.
+
+---
+
+## **⚠️ Troubleshooting**
+### **If Play Store is missing or crashes:**
+1. **Clear Play Services data**:
+   ```bash
+   adb shell pm clear com.google.android.gms
+   ```
+2. **Disable Play Protect** (if blocking installation):
+   ```bash
+   adb shell settings put global package_verifier_enable 0
+   ```
+3. **Ensure Google Play Services is installed**:
+   ```bash
+   adb install /system/priv-app/GooglePlayServices/GooglePlayServices.apk
+   ```
+
+---
+
+### **🚀 Uninstall GApps from Waydroid (Google Play Services & Play Store)**  
+
+If you have installed **GApps (Google Play Services, Play Store, etc.)** in Waydroid and now want to **remove them completely**, follow these steps:  
+
+---
+
+## **🛑 1. Enter Waydroid Shell**  
+Run the following command to open the Waydroid shell:  
+```bash
+waydroid shell
+```
+
+---
+
+## **❌ 2. Mount System as Read/Write**  
+Since GApps files are stored in the **/system partition**, we need to make it writable first:  
+```bash
+mount -o rw,remount /
+```
+
+---
+
+## **🔥 3. Delete GApps Files**  
+Now, remove **Google Play Services, Play Store, and related apps**:  
+```bash
+rm -rf /system/priv-app/GooglePlayServices
+rm -rf /system/priv-app/GooglePlayStore
+rm -rf /system/priv-app/GoogleServicesFramework
+rm -rf /system/priv-app/Phonesky
+rm -rf /system/app/GmsCore
+rm -rf /system/app/PrebuiltGmsCore
+rm -rf /system/app/GoogleContactsSyncAdapter
+rm -rf /system/app/GoogleCalendarSyncAdapter
+```
+
+---
+
+## **🗑️ 4. Clear Google-related Data**  
+To ensure no leftover files remain, run:  
+```bash
+rm -rf /data/data/com.android.vending
+rm -rf /data/data/com.google.android.gms
+rm -rf /data/data/com.google.android.gsf
+rm -rf /data/data/com.google.android.gsf.login
+```
+
+---
+
+## **🔄 5. Reset Waydroid & Restart**  
+Exit the shell:
+```bash
+exit
+```
+Now **restart Waydroid**:
+```bash
+sudo systemctl restart waydroid-container
+```
+
+If you want to **completely reset Waydroid** (removes all installed apps and data):  
+```bash
+sudo waydroid reset
+```
+
+---
+
+## **✅ 6. Verify Removal**  
+Run the following to check if Google Play Services is still installed:  
+```bash
+adb shell pm list packages | grep google
+```
+If no results appear, **GApps have been successfully removed!** 🎉  
+
+---
+
+### **🔥 Optional: Block Future GApps Installation**
+If you want to **block GApps from auto-installing again**, disable the package manager:  
+```bash
+adb shell pm disable-user --user 0 com.android.vending
+```
+
+---
+
+## **🚀 Summary of Commands**
+| Action | Command |
+|--------|---------|
+| **Enter Waydroid shell** | `waydroid shell` |
+| **Make system partition writable** | `mount -o rw,remount /` |
+| **Delete GApps files** | `rm -rf /system/priv-app/...` |
+| **Clear Google-related data** | `rm -rf /data/data/com.google.android.gms` |
+| **Exit shell** | `exit` |
+| **Restart Waydroid** | `sudo systemctl restart waydroid-container` |
+| **Check if GApps are removed** | `adb shell pm list packages | grep google` |
+| **Completely reset Waydroid** | `sudo waydroid reset` |
+
+---
+### **🚀 Step-by-Step Guide to Bypass Play Protect Detection in APKs**  
+If Google Play Protect flags your APK as unsafe, you can modify it to **remove detection flags** and **re-sign it** to prevent security warnings.
+
+---
+
+## **📌 Steps to Modify and Bypass Play Protect in an APK**
+
+### **🔹 1. Install Required Tools**
+Before starting, install the necessary tools:
+
+#### **On Linux (Arch, Ubuntu, Kali, etc.)**
+```bash
+sudo pacman -S apktool zipalign openjdk11-openjdk # For Arch
+sudo apt install apktool zipalign default-jdk -y  # For Debian-based
+```
+
+#### **On Windows**
+- Download **[Apktool](https://github.com/iBotPeaches/Apktool)**
+- Download **[Java JDK](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)**
+- Add them to the **System Path**.
+
+---
+
+### **🔹 2. Decompile APK**
+First, decompile the APK file to edit its contents.
+
+```bash
+apktool d app.apk -o app_decoded
+```
+- This will **extract** the APK files into the `app_decoded/` directory.
+- Now, you can edit the extracted files.
+
+---
+
+### **🔹 3. Modify the APK to Remove Play Protect Detection**
+Now, check these files for Play Protect-related flags.
+
+#### **✅ Edit `AndroidManifest.xml`**
+1. Open `app_decoded/AndroidManifest.xml` in any text editor:
+   ```bash
+   nano app_decoded/AndroidManifest.xml
+   ```
+2. **Search for these permissions** and **remove** them if present:
+   ```xml
+   <uses-permission android:name="com.google.android.gms.permission.PLAY_PROTECT" />
+   <uses-permission android:name="com.android.vending.CHECK_LICENSE" />
+   ```
+3. Save the file and exit.
+
+---
+
+#### **✅ Modify `.smali` Files**
+1. **Search for Google Play Protect Checks**:
+   ```bash
+   grep -r "SafetyNet" app_decoded/
+   grep -r "Google Play Protect" app_decoded/
+   ```
+2. Open the `.smali` file found in the search:
+   ```bash
+   nano app_decoded/smali/com/example/app/MainActivity.smali
+   ```
+3. **Look for Play Protect Verification Code** (Example):
+   ```smali
+   invoke-static {}, Lcom/google/android/gms/safetynet/SafetyNet;->getClient()V
+   ```
+4. **Remove or Modify** the line:
+   ```smali
+   # invoke-static {}, Lcom/google/android/gms/safetynet/SafetyNet;->getClient()V
+   ```
+
+5. Save the file and exit.
+
+---
+
+### **🔹 4. Recompile the Modified APK**
+Once you have made changes, **rebuild the APK**:
+
+```bash
+apktool b app_decoded -o modified_app.apk
+```
+- This will create a **new APK** named `modified_app.apk`.
+
+---
+
+### **🔹 5. Sign the APK**
+Before installing the modified APK, it must be **signed**, or Android will reject it.
+
+1. **Generate a Keystore** (Run once if you don’t have one):
+   ```bash
+   keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias mykey
+   ```
+   - **Choose a password** when prompted.
+
+2. **Sign the APK** using `jarsigner`:
+   ```bash
+   jarsigner -keystore my-release-key.jks -signedjar signed.apk modified_app.apk mykey
+   ```
+
+3. **Verify APK Signature**:
+   ```bash
+   jarsigner -verify -verbose -certs signed.apk
+   ```
+
+4. **Align the APK (Optional, for Play Store compatibility)**:
+   ```bash
+   zipalign -v 4 signed.apk final.apk
+   ```
+
+---
+
+### **🔹 6. Install the Modified APK**
+Finally, install the modified APK in **Waydroid**:
+```bash
+waydroid app install final.apk
+```
+OR via ADB:
+```bash
+adb install final.apk
+```
+
+---
+
+## **🔥 Summary of Commands**
+| Step | Command |
+|------|---------|
+| **Decompile APK** | `apktool d app.apk -o app_decoded` |
+| **Modify Manifest** | `nano app_decoded/AndroidManifest.xml` |
+| **Search for Play Protect Code** | `grep -r "SafetyNet" app_decoded/` |
+| **Edit Smali Files** | `nano app_decoded/smali/com/example/app/MainActivity.smali` |
+| **Rebuild APK** | `apktool b app_decoded -o modified_app.apk` |
+| **Sign APK** | `jarsigner -keystore my-release-key.jks -signedjar signed.apk modified_app.apk mykey` |
+| **Verify Signature** | `jarsigner -verify -verbose -certs signed.apk` |
+| **Install APK in Waydroid** | `waydroid app install signed.apk` |
+
+---
+
